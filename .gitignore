@@ -31,3 +31,24 @@ build/
 
 ### VS Code ###
 .vscode/
+# Variáveis de ambiente e senhas
+.env
+.env.*
+!.env.example
+
+# Configurações locais
+application-local.properties
+application-*.local.properties
+
+# Logs
+*.log
+
+# Backups e bancos de dados
+*.sql
+*.dump
+*.bak
+*.backup
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db

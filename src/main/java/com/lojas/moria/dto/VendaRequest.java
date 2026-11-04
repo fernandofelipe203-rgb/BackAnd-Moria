@@ -15,6 +15,8 @@ public class VendaRequest {
 
     @NotNull(message = "A forma de pagamento é obrigatória")
     private FormaPagamento pagamento;
+    @NotNull(message = "A quantidade de parcelas é obrigatória")
+    private Integer parcelas = 1;
 
     @NotNull(message = "A venda deve possuir uma lista de itens")
     @Size(min = 1, message = "A venda deve possuir pelo menos um produto")
@@ -48,5 +50,13 @@ public class VendaRequest {
 
     public void setClienteId(Long clienteId) {
         this.clienteId = clienteId;
+    }
+
+    public @NotNull(message = "A quantidade de parcelas é obrigatória") Integer getParcelas() {
+        return parcelas;
+    }
+
+    public void setParcelas(@NotNull(message = "A quantidade de parcelas é obrigatória") Integer parcelas) {
+        this.parcelas = parcelas;
     }
 }

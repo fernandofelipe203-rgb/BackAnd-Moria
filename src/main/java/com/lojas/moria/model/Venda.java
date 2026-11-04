@@ -28,10 +28,18 @@ public class Venda {
     @Enumerated(EnumType.STRING)
     private FormaPagamento pagamento;
 
+
+    @NotNull(message = "A quantidade de parcelas é obrigatória")
+    @PositiveOrZero
+    @Column(nullable = false)
+    private Integer parcelas = 1;
+
+
     @NotNull(message = "O total da venda é obrigatório")
     @PositiveOrZero(message = "O total não pode ser negativo")
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal total;
+
 
     @OneToMany(
             mappedBy = "venda",
@@ -94,5 +102,25 @@ public class Venda {
 
     public List<ItemVenda> getItens() {
         return itens;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setData(LocalDateTime data) {
+        this.data = data;
+    }
+
+    public @NotNull(message = "A quantidade de parcelas é obrigatória") @PositiveOrZero Integer getParcelas() {
+        return parcelas;
+    }
+
+    public void setParcelas(@NotNull(message = "A quantidade de parcelas é obrigatória") @PositiveOrZero Integer parcelas) {
+        this.parcelas = parcelas;
+    }
+
+    public void setItens(List<ItemVenda> itens) {
+        this.itens = itens;
     }
 }

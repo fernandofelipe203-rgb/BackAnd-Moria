@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ClienteRepository extends JpaRepository<Cliente, Long > {
 
     boolean existsByTelefone(String telefone);
+    boolean existsByTelefoneAndIdNot(String telefone, Long id);
 }

@@ -14,6 +14,7 @@ public class VendaResponse {
     private Long clienteId;
     private String clienteNome;
     private FormaPagamento pagamento;
+    private Integer parcelas;
     private BigDecimal total;
     private List<ItemVendaResponse> itens;
 
@@ -74,5 +75,13 @@ public class VendaResponse {
 
     public void setItens(List<ItemVendaResponse> itens) {
         this.itens = itens;
+    }
+
+    public Integer getParcelas() {
+        return parcelas;
+    }
+
+    public void setParcelas(Integer parcelas) {
+        this.parcelas = parcelas;
     }
 }

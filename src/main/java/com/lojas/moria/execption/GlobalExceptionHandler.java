@@ -182,4 +182,19 @@ public class GlobalExceptionHandler  {
                 .body(excecao.getMessage());
     }
 
+    @ExceptionHandler(ClienteComVendasException.class)
+    public ResponseEntity<RespostaErro> tratarClienteComVendas(
+            ClienteComVendasException ex) {
+
+        RespostaErro resposta = new RespostaErro(
+                409,
+                "Conflito",
+                ex.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(resposta);
+    }
+
 }

@@ -1,15 +1,16 @@
 
 package com.lojas.moria.service;
-
+import org.springframework.transaction.annotation.Transactional;
 import com.lojas.moria.dto.ItemVendaRequest;
 import com.lojas.moria.dto.ItemVendaResponse;
 import com.lojas.moria.dto.VendaRequest;
 import com.lojas.moria.dto.VendaResponse;
 import com.lojas.moria.model.*;
 import com.lojas.moria.repository.ClienteRepository;
+import com.lojas.moria.repository.MovimentacaoFinanceiraRepository;
 import com.lojas.moria.repository.ProdutoRepository;
 import com.lojas.moria.repository.VendaRepository;
-import jakarta.transaction.Transactional;
+
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Pageable;
@@ -24,17 +25,20 @@ public class VendaService {
     private final VendaRepository vendaRepository;
     private final ProdutoRepository produtoRepository;
     private final MovimentacaoEstoqueService movimentacaoEstoqueService;
+    private final MovimentacaoFinanceiraRepository movimentacaoFinanceiraRepository;
 
     public VendaService(
             VendaRepository vendaRepository,
             ProdutoRepository produtoRepository,
             ClienteRepository clienteRepository,
-            MovimentacaoEstoqueService movimentacaoEstoqueService) {
+            MovimentacaoEstoqueService movimentacaoEstoqueService,
+            MovimentacaoFinanceiraRepository movimentacaoFinanceiraRepository) {
 
         this.vendaRepository = vendaRepository;
         this.produtoRepository = produtoRepository;
         this.clienteRepository = clienteRepository;
         this.movimentacaoEstoqueService = movimentacaoEstoqueService;
+        this.movimentacaoFinanceiraRepository = movimentacaoFinanceiraRepository;
     }
 
     @Transactional
@@ -57,6 +61,21 @@ public class VendaService {
         venda.setCliente(cliente);
 
         venda.setPagamento(request.getPagamento());
+
+        Integer parcelas = request.getParcelas() == null
+                ? 1
+                : request.getParcelas();
+
+        if (request.getPagamento() == FormaPagamento.CARTAO) {
+            if (parcelas < 1 || parcelas > 12) {
+                throw new IllegalArgumentException(
+                        "O cartão permite parcelamento de 1 a 12 vezes");
+            }
+        } else {
+            parcelas = 1;
+        }
+
+        venda.setParcelas(parcelas);
         venda.setTotal(BigDecimal.ZERO);
 
         BigDecimal total = BigDecimal.ZERO;
@@ -122,8 +141,27 @@ public class VendaService {
 
         movimentacaoEstoqueService.registrarMovimentacao(movimentacao);
 
+        // Registra a entrada financeira referente à venda.
+        MovimentacaoFinanceira entrada = new MovimentacaoFinanceira();
+
+        entrada.setTipo(TipoMovimentacaoFinanceira.ENTRADA);
+        entrada.setDescricao("Recebimento da venda #" + vendaSalva.getId());
+        entrada.setValor(vendaSalva.getTotal());
+        entrada.setFormaPagamento(vendaSalva.getPagamento());
+        entrada.setForma(vendaSalva.getPagamento().name());
+
+        entrada.setCategoria("Venda");
+        entrada.setPessoa(vendaSalva.getCliente().getNome());
+        entrada.setStatus(StatusMovimentacaoFinanceira.PAGO);
+        entrada.setOrigem(OrigemMovimentacaoFinanceira.VENDA);
+
+        entrada.setVenda(vendaSalva);
+
+        movimentacaoFinanceiraRepository.save(entrada);
+
         return converterParaResponse(vendaSalva);
     }
+    @jakarta.transaction.Transactional
 
     public List<VendaResponse> listarVendas(int quantidade) {
 
@@ -148,6 +186,7 @@ public class VendaService {
         response.setClienteId(venda.getCliente().getId());
         response.setClienteNome(venda.getCliente().getNome());
         response.setPagamento(venda.getPagamento());
+        response.setParcelas(venda.getParcelas());
         response.setTotal(venda.getTotal());
 
         List<ItemVendaResponse> itens = venda.getItens()
